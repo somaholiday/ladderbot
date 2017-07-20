@@ -5,6 +5,7 @@
 const _ = require('lodash');
 const { RtmClient, RTM_EVENTS, CLIENT_EVENTS, MemoryDataStore } = require('@slack/client');
 
+// BOT INITIALIZATION
 const bot_token = process.env.SLACK_TOKEN || '';
 
 const bot = new RtmClient(bot_token, {
@@ -13,6 +14,8 @@ const bot = new RtmClient(bot_token, {
 });
 
 bot.on(RTM_EVENTS.MESSAGE, function handleRtmMessage(message) {
+  const channelName = bot.dataStore.getChannelById(message.channel).name;
+
   if (message.type === 'message') {
     handleMessage(message);
   }
@@ -26,7 +29,10 @@ bot.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, function() {
 
 bot.start();
 
-const entries = [];
+// WORD LADDER HANDLING
+
+/* channel -> { word, user } */
+const entries = {};
 
 const pattern = /^\*(\w{3,5})\*/;
 
@@ -54,35 +60,35 @@ function handleMessage(message) {
   const { text, channel, user } = message;
 
   const match = text.match(pattern);
-
-  console.log({ message })
   
   if (!match) { return; }
 
   const word = _.upperCase(match[1]);
   
-  if (_.isEmpty(entries)) {
-    entries.push({
+  const channelEntries = entries[channel];
+
+  if (_.isUndefined(channelEntries)) {
+    entries[channel] = [{
       word,
       user,
-    });
+    }];
     return;
   }
 
-  const lastWord = _.last(entries).word;
+  const lastWord = _.last(channelEntries).word;
 
   if (!isValid(lastWord, word)) {
     respondInvalid(channel, word, lastWord);
     return;
   }
 
-  entries.push({
+  channelEntries.push({
     word,
     user,
   });
 }
 
 function respondInvalid(channel, invalidWord, lastWord) {
-  const message = `:no_good: ${invalidWord} does not follow ${lastWord}`;
+  const message = `${lastWord} → ${invalidWord} = :no_good:`;
   bot.sendMessage(message, channel);
 }
