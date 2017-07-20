@@ -75,7 +75,14 @@ function handleMessage(message) {
     return;
   }
 
-  const lastWord = _.last(channelEntries).word;
+  const channelWords = _.map(channelEntries, 'word');
+
+  if (_.includes(channelWords, word)) {
+    respondRepeat(channel, word);
+    return;
+  }
+
+  const lastWord = _.last(channelWords);
 
   if (!isValid(lastWord, word)) {
     respondInvalid(channel, word, lastWord);
@@ -88,7 +95,12 @@ function handleMessage(message) {
   });
 }
 
+function respondRepeat(channel, repeatWord) {
+  const message = `:no_good: *${repeatWord}* has been played before.`;
+  bot.sendMessage(message, channel);
+}
+
 function respondInvalid(channel, invalidWord, lastWord) {
-  const message = `${lastWord} → ${invalidWord} = :no_good:`;
+  const message = `*${lastWord}* → *${invalidWord}* = :no_good:`;
   bot.sendMessage(message, channel);
 }
