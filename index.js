@@ -101,6 +101,6 @@ function respondRepeat(channel, repeatWord) {
 }
 
 function respondInvalid(channel, invalidWord, lastWord) {
-  const message = `*${lastWord}* → *${invalidWord}* = :no_good:`;
+  const message = `:no_good: *${lastWord}* ⇏ *${invalidWord}*`;
   bot.sendMessage(message, channel);
 }
