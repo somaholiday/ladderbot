@@ -3,14 +3,14 @@
 
 const _ = require('lodash');
 const { MessageBot } = require('./rtm_bot');
-const checker = require('./word-ladder-checker');
+const checker = require('./word_ladder_checker');
 const responses = require('./responses');
 
 let words;
 
 const token = process.env.SLACK_TOKEN;
 if (_.isUndefined(token)) {
-  throw new Error('Please provide a SLACK_TOKEN env var');
+  throw new Error('Please provide a SLACK_TOKEN environment variable');
 }
 
 const ladderBot = new MessageBot(token, handleMessage);
