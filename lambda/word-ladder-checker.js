@@ -29,5 +29,5 @@ function isValid(lastWord, newWord) {
 module.exports = {
   wordMatch,
   isValid,
-  responses
-}
+  responses,
+};
