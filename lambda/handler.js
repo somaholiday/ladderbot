@@ -2,6 +2,7 @@
 
 const AWS = require('aws-sdk');
 const qs = require('querystring');
+const _ = require('lodash');
 const checker = require('./word-ladder-checker');
 const responses = require('./responses');
 
@@ -62,6 +63,10 @@ function processEvent(event, callback) {
     // Do game initialization for this channel + game
     // db.putWord
     callback(null, checker.responses.firstWord(word));
+  }
+
+  if (_.includes(words, word)) {
+    callback(null, checker.responses.repeat(word));
   }
 
   const lastWord = _.last(words);
