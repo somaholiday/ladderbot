@@ -5,8 +5,7 @@ const _ = require('lodash');
 const { MessageBot } = require('./rtm_bot');
 const checker = require('./word_ladder_checker');
 const responses = require('./responses');
-
-let words;
+const { db } = require('./db');
 
 const token = process.env.SLACK_TOKEN;
 if (_.isUndefined(token)) {
@@ -32,7 +31,7 @@ const ladderBot = new MessageBot(token, handleMessage);
  * @param message
  */
 function handleMessage(message) {
-  const { text, channel } = message;
+  const { text, channel, user, ts } = message;
 
   /* Check if the message is a word entry */
   const word = checker.wordMatch(text);
@@ -41,35 +40,58 @@ function handleMessage(message) {
     return;
   }
 
-  // const words = db.getWords(channel);
+  // THIS IS A HENIOUS MESS, BUT I WANTED TO SEE IT WORK
+  db.find({ channel: channel }).sort({ timestamp: 1 }).exec((err, docs) => {
+    const words = _.map(docs, 'word');
 
-  /* Is this the first word of the game? */
-  if (!words) {
-    // TODO: Do game initialization for this channel + game
-    newGame(word, channel);
-    return;
-  }
+    /* Is this the first word of the game? */
+    if (_.isEmpty(words)) {
+      // TODO: Do game initialization for this channel + game
+      const record = {
+        channel,
+        user, // TODO: look up and save user name
+        word,
+        text,
+        timestamp: ts,
+      };
 
-  /* Has this word been used before? */
-  if (_.includes(words, word)) {
-    handleRepeat(word, channel);
-    return;
-  }
+      db.insert(record, function(err, doc) {
+        console.log('Inserted', doc.word, 'with ID', doc._id);
+      });
+      newGame(word, channel);
+      return;
+    }
 
-  /* Is this word a valid follow-up to the last word? */
-  const lastWord = _.last(words);
+    /* Has this word been used before? */
+    if (_.includes(words, word)) {
+      handleRepeat(word, channel);
+      return;
+    }
 
-  if (!checker.isValid(lastWord, word)) {
-    handleInvalid(lastWord, word, channel);
-    return;
-  }
+    /* Is this word a valid follow-up to the last word? */
+    const lastWord = _.last(words);
 
-  /* Word was valid. Update the list. */
-  words.push(word);
+    if (!checker.isValid(lastWord, word)) {
+      handleInvalid(lastWord, word, channel);
+      return;
+    }
+
+    /* Word was valid. Update the list. */
+    const record = {
+      channel,
+      user, // TODO: look up and save user name
+      word,
+      text,
+      timestamp: ts,
+    };
+
+    db.insert(record, function(err, doc) {
+      console.log('Inserted', doc.word, 'with ID', doc._id);
+    });
+  });
 }
 
 function newGame(word, channel) {
-  words = [word];
   ladderBot.say(responses.firstWord(word), channel);
 }
 
