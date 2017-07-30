@@ -13,13 +13,24 @@ function wordMatch(text) {
 }
 
 function isValid(lastWord, newWord) {
-  const diff = _.xor(lastWord.split(''), newWord.split(''));
-
   if (lastWord.length === newWord.length) {
-    return diff.length === 2;
+    let diffs = 0;
+    let len = lastWord.length;
+    let i = 0;
+
+    while (i < len && diffs <= 1) {
+      if (lastWord[i] !== newWord[i]) {
+        diffs++;
+      }
+      i++;
+    }
+
+    return diffs === 1;
   }
 
   if (Math.abs(lastWord.length - newWord.length) === 1) {
+    // TODO: this is broken. Check if longerWord - diffLetter === shorterWord
+    const diff = _.xor(lastWord.split(''), newWord.split(''));
     return diff.length === 1;
   }
 
