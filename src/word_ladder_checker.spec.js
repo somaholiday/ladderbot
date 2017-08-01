@@ -26,7 +26,7 @@ const test_cases = [
 
 _.each(test_cases, test_case => {
   const [start, end, expected] = test_case;
-  test(`${start} → ${end} = ${expected}`, () => {
+  it(`${start} → ${end} = ${expected ? '✓' : '✕'}`, () => {
     expect(checker.isValid(start, end)).toBe(expected);
   });
 });
